@@ -231,23 +231,23 @@
 
 <script>
   // Storage shim: replicates the Claude-artifact window.storage API using
-  // localStorage, so the app works standalone (installed as a PWA on Android).
+  // window.storage, so the app works standalone (installed as a PWA on Android).
   window.storage = {
     async get(key) {
-      const v = localStorage.getItem(key);
+      const v = window.storage.getItem(key);
       return v === null ? null : { key, value: v, shared: false };
     },
     async set(key, value) {
-      localStorage.setItem(key, value);
+      window.storage.setItem(key, value);
       return { key, value, shared: false };
     },
     async delete(key) {
-      const had = localStorage.getItem(key) !== null;
-      localStorage.removeItem(key);
+      const had = window.storage.getItem(key) !== null;
+      window.storage.removeItem(key);
       return { key, deleted: had, shared: false };
     },
     async list(prefix) {
-      const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix));
+      const keys = Object.keys(window.storage).filter(k => !prefix || k.startsWith(prefix));
       return { keys, prefix, shared: false };
     }
   };
