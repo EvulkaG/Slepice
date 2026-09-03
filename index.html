@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Slepičí deník</title>
+<meta name="description" content="Deník snášky, nákupů, prodeje vajec a vlastní spotřeby">
+<meta name="theme-color" content="#4B5D34">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Slepičí deník">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #F7F2E4; }
+  #henapp * { box-sizing: border-box; }
+  #henapp {
+    font-family: 'Inter', sans-serif;
+    background: #F7F2E4;
+    color: #3B2E22;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid #E3D8BE;
+  }
+  #henapp h1, #henapp h2, #henapp h3 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0; }
+  #henapp .head {
+    background: #4B5D34;
+    color: #F3EFE0;
+    padding: 20px 22px 18px;
+  }
+  #henapp .head h1 { font-size: 22px; letter-spacing: 0.2px; }
+  #henapp .head p { margin: 4px 0 0; font-size: 13px; color: #D9E0C8; }
+  #henapp .tabs {
+    display: flex;
+    background: #EFE7D2;
+    border-bottom: 1px solid #E3D8BE;
+  }
+  #henapp .tab {
+    flex: 1;
+    padding: 11px 4px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #7A6D53;
+    border-bottom: 2px solid transparent;
+    user-select: none;
+  }
+  #henapp .tab.active { color: #4B5D34; border-bottom: 2px solid #B5652E; }
+  #henapp .panel { display: none; padding: 18px 20px 22px; }
+  #henapp .panel.active { display: block; }
+  #henapp .hens-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 14px 0; }
+  #henapp .hen-btn {
+    border: 1px solid #E3D8BE;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: left;
+    cursor: pointer;
+  }
+  #henapp .hen-btn .name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; }
+  #henapp .hen-btn .sub { font-size: 12px; color: #8A7B5C; margin-top: 2px; }
+  #henapp .hen-btn.laid { background: #FBF0D9; border-color: #E8C468; }
+  #henapp .hen-btn.laid .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #B5652E; margin-right: 6px; }
+  #henapp label.field { display: block; font-size: 12px; color: #7A6D53; margin: 12px 0 4px; }
+  #henapp input, #henapp select {
+    width: 100%; padding: 9px 10px; border-radius: 8px; border: 1px solid #DCD0B4;
+    background: #fff; font-size: 14px; font-family: 'Inter', sans-serif; color: #3B2E22;
+  }
+  #henapp .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #henapp button.action {
+    margin-top: 16px; width: 100%; padding: 11px; border-radius: 9px; border: none;
+    background: #4B5D34; color: #F3EFE0; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  #henapp button.action:active { transform: scale(0.99); }
+  #henapp .list { margin-top: 18px; border-top: 1px solid #E3D8BE; padding-top: 10px; }
+  #henapp .list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid #EFE7D2; font-size: 13px;
+  }
+  #henapp .list-item .main { color: #3B2E22; }
+  #henapp .list-item .meta { color: #8A7B5C; font-size: 12px; margin-top: 1px; }
+  #henapp .list-item .amt { font-weight: 500; white-space: nowrap; margin-left: 10px; }
+  #henapp .del { border: none; background: none; color: #B5652E; font-size: 16px; cursor: pointer; padding: 0 0 0 10px; line-height: 1; }
+  #henapp .empty { color: #8A7B5C; font-size: 13px; padding: 14px 0; text-align: center; }
+  #henapp .hint { color: #8A7B5C; font-size: 12.5px; line-height: 1.5; margin: 4px 0 16px; }
+  #henapp .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  #henapp .stat-card { background: #fff; border: 1px solid #E3D8BE; border-radius: 12px; padding: 12px 14px; }
+  #henapp .stat-card .label { font-size: 12px; color: #8A7B5C; }
+  #henapp .stat-card .value { font-family: 'Fraunces', serif; font-size: 20px; margin-top: 2px; }
+  #henapp .stat-card.profit-pos .value { color: #4B5D34; }
+  #henapp .stat-card.profit-neg .value { color: #B5652E; }
+  #henapp .hen-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #EFE7D2; }
+  #henapp .hen-stat-row .n { font-family: 'Fraunces', serif; font-size: 15px; }
+  #henapp .hen-stat-row .bar-wrap { flex: 1; margin: 0 12px; height: 6px; background: #EFE7D2; border-radius: 4px; overflow: hidden; }
+  #henapp .hen-stat-row .bar { height: 100%; background: #B5652E; }
+  #henapp .hen-stat-row .cnt { font-size: 13px; color: #7A6D53; min-width: 70px; text-align: right; }
+  #henapp .section-title { font-size: 13px; color: #7A6D53; margin: 18px 0 8px; text-transform: none; }
+  #henapp .month-row { padding: 10px 0; border-bottom: 1px solid #EFE7D2; }
+  #henapp .month-row .top { display: flex; justify-content: space-between; align-items: baseline; }
+  #henapp .month-row .m { font-family: 'Fraunces', serif; font-size: 15px; text-transform: capitalize; }
+  #henapp .month-row .total { font-size: 13px; color: #7A6D53; }
+  #henapp .month-row .bar-wrap { height: 6px; background: #EFE7D2; border-radius: 4px; overflow: hidden; margin: 6px 0 5px; }
+  #henapp .month-row .bar { height: 100%; background: #4B5D34; }
+  #henapp .month-row .breakdown { font-size: 11px; color: #8A7B5C; }
+  #henapp .err { color: #B5652E; font-size: 12px; margin-top: 6px; display: none; }
+  #henapp .subtabs { display: flex; gap: 8px; margin-bottom: 4px; }
+  #henapp .subtab { padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid #DCD0B4; cursor: pointer; color: #7A6D53; background: #fff; }
+  #henapp .subtab.active { background: #4B5D34; color: #F3EFE0; border-color: #4B5D34; }
+  #henapp .list-subtotal { font-size: 12px; color: #7A6D53; margin-top: 12px; }
+  #henapp .import-banner { margin: 14px 20px 0; background: #FBF0D9; border: 1px solid #E8C468; border-radius: 12px; padding: 12px 14px; }
+  #henapp .import-banner p { font-size: 13px; margin: 0 0 8px; color: #5A4A2E; }
+  #henapp .import-banner button { width: auto; margin: 0; padding: 8px 14px; font-size: 13px; }
+  #henapp .import-banner .dismiss { background: none; border: none; color: #8A7B5C; font-size: 12px; margin-left: 10px; cursor: pointer; text-decoration: underline; padding: 0; width: auto; }
+  #henapp .hen-card { border: 1px solid #E3D8BE; background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  #henapp .hen-card .top { display: flex; justify-content: space-between; align-items: center; }
+  #henapp .hen-card .name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; }
+  #henapp .hen-card .meta { font-size: 12px; color: #8A7B5C; margin-top: 2px; }
+  #henapp .hen-card .actions { display: flex; gap: 6px; }
+  #henapp .hen-card .actions button {
+    width: auto; margin: 0; padding: 5px 10px; font-size: 12px; border-radius: 7px;
+    border: 1px solid #DCD0B4; background: #fff; color: #7A6D53; cursor: pointer;
+  }
+  #henapp .hen-card .actions button.danger { color: #B5652E; border-color: #E8C8A8; }
+  #henapp .hen-card .actions button.danger.confirming { background: #B5652E; color: #fff; border-color: #B5652E; }
+  #henapp .hen-card .edit-form .row2 { margin-top: 8px; }
+  #henapp .hen-card .edit-actions { display: flex; gap: 8px; margin-top: 10px; }
+  #henapp .hen-card .edit-actions button { width: auto; margin: 0; padding: 8px 14px; font-size: 13px; }
+  #henapp .hen-card .edit-actions button.cancel { background: #fff; color: #7A6D53; border: 1px solid #DCD0B4; }
+</style>
+</head>
+<body>
+
+<div id="henapp">
+  <div class="head">
+    <h1>Slepičí deník</h1>
+    <p id="head-hens">Božena · Růžena · Žofka · Pepina</p>
+  </div>
+  <div class="import-banner" id="import-banner" style="display:none">
+    <p id="import-banner-text"></p>
+    <button class="action" id="import-banner-btn">Importovat data</button>
+    <button class="dismiss" id="import-banner-dismiss">Nechci importovat</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="snaska">Snáška</div>
+    <div class="tab" data-tab="nakupy">Nákupy</div>
+    <div class="tab" data-tab="prodej">Prodej vajec</div>
+    <div class="tab" data-tab="spotreba">Vlastní spotřeba</div>
+    <div class="tab" data-tab="prehled">Přehled</div>
+    <div class="tab" data-tab="slepice">Moje slepice</div>
+  </div>
+
+  <div class="panel active" id="panel-snaska">
+    <label class="field">Datum</label>
+    <input type="date" id="snaska-date">
+    <div class="hens-row" id="hens-row"></div>
+    <div class="list" id="snaska-list"></div>
+  </div>
+
+  <div class="panel" id="panel-nakupy">
+    <div class="subtabs">
+      <div class="subtab active" data-ptype="krmivo">Krmivo</div>
+      <div class="subtab" data-ptype="vybaveni">Vybavení</div>
+      <div class="subtab" data-ptype="slepice">Slepice</div>
+    </div>
+    <label class="field">Položka</label>
+    <input type="text" id="nakup-item" placeholder="např. Kompletní krmná směs 25 kg">
+    <div class="row2">
+      <div><label class="field">Cena (Kč)</label><input type="number" id="nakup-cena" min="0" step="0.01"></div>
+      <div><label class="field">Datum</label><input type="date" id="nakup-date"></div>
+    </div>
+    <div class="err" id="nakup-err">Vyplňte položku a cenu.</div>
+    <button class="action" id="nakup-add">Přidat nákup</button>
+    <div class="section-title">Historie nákupů</div>
+    <div class="subtabs" id="nakup-filter">
+      <div class="subtab active" data-filter="vse">Vše</div>
+      <div class="subtab" data-filter="krmivo">Krmivo</div>
+      <div class="subtab" data-filter="vybaveni">Vybavení</div>
+      <div class="subtab" data-filter="slepice">Slepice</div>
+    </div>
+    <div class="list-subtotal" id="nakup-subtotal"></div>
+    <div class="list" id="nakup-list"></div>
+  </div>
+
+  <div class="panel" id="panel-prodej">
+    <label class="field">Datum</label>
+    <input type="date" id="prodej-date">
+    <div class="row2">
+      <div><label class="field">Počet vajec</label><input type="number" id="prodej-pocet" min="1" step="1"></div>
+      <div><label class="field">Cena za kus (Kč)</label><input type="number" id="prodej-cena" min="0" step="0.5"></div>
+    </div>
+    <label class="field">Komu (nepovinné)</label>
+    <input type="text" id="prodej-komu" placeholder="např. sousedka">
+    <div class="err" id="prodej-err">Vyplňte počet vajec a cenu za kus.</div>
+    <button class="action" id="prodej-add">Zapsat prodej</button>
+    <div class="list" id="prodej-list"></div>
+  </div>
+
+  <div class="panel" id="panel-spotreba">
+    <div class="section-title">Vlastní spotřeba</div>
+    <div class="hint">Po skončení každého měsíce se sem automaticky doplní rozdíl mezi snesenými a prodanými vejci za daný měsíc, oceněný průměrnou prodejní cenou vejce v tom měsíci. Nic se nezadává ručně.</div>
+    <div class="section-title">Historie po měsících</div>
+    <div id="spotreba-list"></div>
+  </div>
+
+  <div class="panel" id="panel-prehled">
+    <div class="stat-grid" id="prehled-stats"></div>
+    <div class="section-title">Snáška podle slepice (celkem)</div>
+    <div id="prehled-hens"></div>
+    <div class="section-title">Snáška po měsících</div>
+    <div id="prehled-months"></div>
+  </div>
+
+  <div class="panel" id="panel-slepice">
+    <div id="hen-list"></div>
+    <div class="section-title">Přidat slepici</div>
+    <label class="field">Jméno</label>
+    <input type="text" id="hen-name" placeholder="např. Konzuela">
+    <div class="row2">
+      <div><label class="field">Plemeno (nepovinné)</label><input type="text" id="hen-breed" placeholder="např. Sussex"></div>
+      <div><label class="field">Datum pořízení (nepovinné)</label><input type="date" id="hen-date"></div>
+    </div>
+    <div class="err" id="hen-err">Zadej alespoň jméno slepice.</div>
+    <button class="action" id="hen-add">Přidat slepici</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc, deleteField
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ---- SEM VLOŽ SVOJI KONFIGURACI Z FIREBASE KONZOLE ----
+  // Project settings → Your apps → SDK setup and configuration → Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDQF6lUwWlObf8kYkpOCRznXtIj7_PyI8E",
+    authDomain: "slepici-denik.firebaseapp.com",
+    projectId: "slepici-denik",
+    storageBucket: "slepici-denik.firebasestorage.app",
+    messagingSenderId: "1094179398109",
+    appId: "1:1094179398109:web:58577bbce210e3255b9634"
+  };
+  // ---------------------------------------------------------
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const docRef = doc(db, "henapp", "shared");
+
+  let cachedDoc = null;
+  async function loadDoc() {
+    try {
+      const snap = await getDoc(docRef);
+      cachedDoc = snap.exists() ? snap.data() : {};
+    } catch (err) {
+      console.error("Nepodařilo se načíst data z Firebase:", err);
+      cachedDoc = {};
+    }
+  }
+
+  // Storage adapter: replicates the Claude-artifact window.storage API,
+  // backed by a single shared Firestore document so phone and PC see the same data.
+  window.storage = {
+    async get(key) {
+      if (!cachedDoc) await loadDoc();
+      return Object.prototype.hasOwnProperty.call(cachedDoc, key)
+        ? { key, value: cachedDoc[key], shared: true }
+        : null;
+    },
+    async set(key, value) {
+      if (!cachedDoc) await loadDoc();
+      cachedDoc[key] = value;
+      try {
+        await setDoc(docRef, { [key]: value }, { merge: true });
+      } catch (err) {
+        console.error("Nepodařilo se uložit do Firebase:", err);
+      }
+      return { key, value, shared: true };
+    },
+    async delete(key) {
+      if (!cachedDoc) await loadDoc();
+      const had = Object.prototype.hasOwnProperty.call(cachedDoc, key);
+      delete cachedDoc[key];
+      try {
+        await updateDoc(docRef, { [key]: deleteField() });
+      } catch (err) {
+        console.error("Nepodařilo se smazat v Firebase:", err);
+      }
+      return { key, deleted: had, shared: true };
+    },
+    async list(prefix) {
+      if (!cachedDoc) await loadDoc();
+      const keys = Object.keys(cachedDoc).filter(k => !prefix || k.startsWith(prefix));
+      return { keys, prefix, shared: true };
+    }
+  };
+
+  // Spustí appku až po připravení storage adaptéru výše.
+  const appScript = document.createElement('script');
+  appScript.textContent = document.getElementById('henapp-logic').textContent;
+  document.body.appendChild(appScript);
+</script>
+
+<script id="henapp-logic" type="text/plain">
+(function () {
+  const root = document.getElementById('henapp');
+  let hens = [];
+  const henNames = () => hens.map(h => h.name);
+  const today = () => new Date().toISOString().slice(0, 10);
+  const fmtDate = (d) => { const dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); };
+  const fmtCzk = (n) => Math.round(n).toLocaleString('cs-CZ') + ' Kč';
+
+  let eggLogs = [];
+  let purchases = [];
+  let sales = [];
+  let ownConsumption = [];
+  let currentPtype = 'krmivo';
+
+  const IMPORT_DATA = {"eggLogs":[["2026-02-10","Božena"],["2026-02-11","Božena"],["2026-02-12","Božena"],["2026-02-13","Božena"],["2026-02-14","Božena"],["2026-02-15","Božena"],["2026-02-16","Božena"],["2026-02-17","Růžena"],["2026-02-18","Božena"],["2026-02-19","Božena"],["2026-02-21","Božena"],["2026-02-21","Růžena"],["2026-02-23","Růžena"],["2026-02-24","Božena"],["2026-02-25","Božena"],["2026-02-26","Božena"],["2026-02-27","Božena"],["2026-02-27","Růžena"],["2026-03-01","Božena"],["2026-03-01","Růžena"],["2026-03-02","Božena"],["2026-03-03","Božena"],["2026-03-03","Růžena"],["2026-03-05","Božena"],["2026-03-05","Růžena"],["2026-03-06","Božena"],["2026-03-06","Růžena"],["2026-03-07","Božena"],["2026-03-08","Božena"],["2026-03-08","Růžena"],["2026-03-09","Božena"],["2026-03-09","Růžena"],["2026-03-10","Růžena"],["2026-03-11","Růžena"],["2026-03-12","Božena"],["2026-03-12","Růžena"],["2026-03-14","Božena"],["2026-03-14","Růžena"],["2026-03-14","Žofka"],["2026-03-15","Božena"],["2026-03-15","Růžena"],["2026-03-15","Žofka"],["2026-03-16","Božena"],["2026-03-16","Růžena"],["2026-03-16","Žofka"],["2026-03-17","Božena"],["2026-03-17","Žofka"],["2026-03-18","Božena"],["2026-03-18","Růžena"],["2026-03-19","Božena"],["2026-03-19","Růžena"],["2026-03-19","Žofka"],["2026-03-20","Božena"],["2026-03-20","Růžena"],["2026-03-20","Žofka"],["2026-03-21","Božena"],["2026-03-21","Růžena"],["2026-03-21","Žofka"],["2026-03-22","Božena"],["2026-03-22","Růžena"],["2026-03-22","Žofka"],["2026-03-23","Růžena"],["2026-03-23","Žofka"],["2026-03-24","Božena"],["2026-03-24","Růžena"],["2026-03-24","Žofka"],["2026-03-25","Božena"],["2026-03-25","Žofka"],["2026-03-26","Božena"],["2026-03-26","Růžena"],["2026-03-26","Žofka"],["2026-03-27","Božena"],["2026-03-27","Růžena"],["2026-03-27","Žofka"],["2026-03-28","Božena"],["2026-03-28","Růžena"],["2026-03-28","Pepina"],["2026-03-28","Žofka"],["2026-03-29","Božena"],["2026-03-29","Žofka"],["2026-03-30","Božena"],["2026-03-30","Růžena"],["2026-03-30","Pepina"],["2026-03-30","Žofka"],["2026-03-31","Pepina"],["2026-04-01","Božena"],["2026-04-01","Pepina"],["2026-04-01","Žofka"],["2026-04-02","Pepina"],["2026-04-02","Žofka"],["2026-04-03","Božena"],["2026-04-03","Pepina"],["2026-04-03","Žofka"],["2026-04-04","Božena"],["2026-04-04","Žofka"],["2026-04-05","Božena"],["2026-04-05","Pepina"],["2026-04-05","Žofka"],["2026-04-06","Božena"],["2026-04-06","Pepina"],["2026-04-06","Žofka"],["2026-04-07","Božena"],["2026-04-07","Pepina"],["2026-04-07","Žofka"],["2026-04-08","Pepina"],["2026-04-08","Žofka"],["2026-04-09","Božena"],["2026-04-09","Pepina"],["2026-04-09","Žofka"],["2026-04-10","Růžena"],["2026-04-10","Pepina"],["2026-04-10","Žofka"],["2026-04-11","Božena"],["2026-04-11","Pepina"],["2026-04-11","Žofka"],["2026-04-12","Růžena"],["2026-04-12","Pepina"],["2026-04-12","Žofka"],["2026-04-13","Božena"],["2026-04-13","Růžena"],["2026-04-13","Pepina"],["2026-04-13","Žofka"],["2026-04-14","Božena"],["2026-04-14","Růžena"],["2026-04-14","Pepina"],["2026-04-14","Žofka"],["2026-04-15","Růžena"],["2026-04-15","Pepina"],["2026-04-15","Žofka"],["2026-04-16","Pepina"],["2026-04-16","Žofka"],["2026-04-17","Růžena"],["2026-04-17","Žofka"],["2026-04-18","Růžena"],["2026-04-18","Pepina"],["2026-04-18","Žofka"],["2026-04-19","Růžena"],["2026-04-19","Pepina"],["2026-04-19","Žofka"],["2026-04-20","Růžena"],["2026-04-20","Pepina"],["2026-04-20","Žofka"],["2026-04-21","Růžena"],["2026-04-21","Pepina"],["2026-04-21","Žofka"],["2026-04-22","Božena"],["2026-04-22","Růžena"],["2026-04-22","Pepina"],["2026-04-22","Žofka"],["2026-04-23","Božena"],["2026-04-23","Růžena"],["2026-04-23","Pepina"],["2026-04-23","Žofka"],["2026-04-24","Růžena"],["2026-04-24","Pepina"],["2026-04-24","Žofka"],["2026-04-25","Božena"],["2026-04-25","Pepina"],["2026-04-25","Žofka"],["2026-04-26","Růžena"],["2026-04-26","Pepina"],["2026-04-26","Žofka"],["2026-04-27","Pepina"],["2026-04-27","Žofka"],["2026-04-28","Pepina"],["2026-04-28","Žofka"],["2026-04-29","Pepina"],["2026-04-29","Žofka"],["2026-04-30","Božena"],["2026-04-30","Pepina"],["2026-04-30","Žofka"],["2026-05-01","Pepina"],["2026-05-01","Žofka"],["2026-05-02","Božena"],["2026-05-02","Pepina"],["2026-05-02","Žofka"],["2026-05-03","Pepina"],["2026-05-03","Žofka"],["2026-05-04","Božena"],["2026-05-04","Pepina"],["2026-05-04","Žofka"],["2026-05-05","Božena"],["2026-05-05","Pepina"],["2026-05-05","Žofka"],["2026-05-06","Božena"],["2026-05-06","Pepina"],["2026-05-06","Žofka"],["2026-05-07","Pepina"],["2026-05-07","Žofka"],["2026-05-08","Božena"],["2026-05-08","Růžena"],["2026-05-08","Pepina"],["2026-05-08","Žofka"],["2026-05-09","Božena"],["2026-05-09","Pepina"],["2026-05-09","Žofka"],["2026-05-10","Božena"],["2026-05-10","Růžena"],["2026-05-10","Pepina"],["2026-05-10","Žofka"],["2026-05-11","Růžena"],["2026-05-11","Pepina"],["2026-05-11","Žofka"],["2026-05-12","Božena"],["2026-05-12","Pepina"],["2026-05-12","Žofka"],["2026-05-13","Božena"],["2026-05-13","Růžena"],["2026-05-13","Pepina"],["2026-05-13","Žofka"],["2026-05-14","Růžena"],["2026-05-14","Pepina"],["2026-05-14","Žofka"],["2026-05-15","Růžena"],["2026-05-15","Pepina"],["2026-05-15","Žofka"],["2026-05-16","Růžena"],["2026-05-16","Pepina"],["2026-05-16","Žofka"],["2026-05-17","Pepina"],["2026-05-17","Žofka"],["2026-05-18","Růžena"],["2026-05-18","Pepina"],["2026-05-18","Žofka"],["2026-05-19","Božena"],["2026-05-19","Pepina"],["2026-05-19","Žofka"],["2026-05-20","Pepina"],["2026-05-20","Žofka"],["2026-05-21","Božena"],["2026-05-21","Pepina"],["2026-05-21","Žofka"],["2026-05-22","Božena"],["2026-05-22","Pepina"],["2026-05-23","Božena"],["2026-05-23","Pepina"],["2026-05-24","Pepina"],["2026-05-24","Žofka"],["2026-05-25","Božena"],["2026-05-25","Pepina"],["2026-05-25","Žofka"],["2026-05-26","Růžena"],["2026-05-26","Pepina"],["2026-05-26","Žofka"],["2026-05-27","Božena"],["2026-05-27","Pepina"],["2026-05-27","Žofka"],["2026-05-28","Božena"],["2026-05-28","Pepina"],["2026-05-28","Žofka"],["2026-05-29","Božena"],["2026-05-29","Růžena"],["2026-05-29","Pepina"],["2026-05-29","Žofka"],["2026-05-30","Božena"],["2026-05-30","Růžena"],["2026-05-30","Pepina"],["2026-05-30","Žofka"],["2026-05-31","Božena"],["2026-05-31","Růžena"],["2026-05-31","Pepina"],["2026-05-31","Žofka"],["2026-06-01","Pepina"],["2026-06-01","Žofka"],["2026-06-02","Božena"],["2026-06-02","Růžena"],["2026-06-02","Pepina"],["2026-06-02","Žofka"],["2026-06-03","Božena"],["2026-06-03","Růžena"],["2026-06-03","Pepina"],["2026-06-03","Žofka"],["2026-06-04","Růžena"],["2026-06-04","Pepina"],["2026-06-04","Žofka"],["2026-06-05","Božena"],["2026-06-05","Pepina"],["2026-06-05","Žofka"],["2026-06-06","Božena"],["2026-06-06","Růžena"],["2026-06-06","Pepina"],["2026-06-06","Žofka"],["2026-06-07","Růžena"],["2026-06-07","Pepina"],["2026-06-07","Žofka"],["2026-06-08","Božena"],["2026-06-08","Růžena"],["2026-06-08","Pepina"],["2026-06-08","Žofka"],["2026-06-09","Božena"],["2026-06-09","Pepina"],["2026-06-09","Žofka"],["2026-06-10","Růžena"],["2026-06-10","Pepina"],["2026-06-10","Žofka"],["2026-06-11","Růžena"],["2026-06-11","Pepina"],["2026-06-11","Žofka"],["2026-06-12","Božena"],["2026-06-12","Růžena"],["2026-06-12","Pepina"],["2026-06-12","Žofka"],["2026-06-13","Božena"],["2026-06-13","Pepina"],["2026-06-13","Žofka"],["2026-06-14","Božena"],["2026-06-14","Růžena"],["2026-06-14","Pepina"],["2026-06-14","Žofka"],["2026-06-15","Božena"],["2026-06-15","Pepina"],["2026-06-15","Žofka"],["2026-06-16","Božena"],["2026-06-16","Pepina"],["2026-06-16","Žofka"],["2026-06-17","Božena"],["2026-06-17","Pepina"],["2026-06-17","Žofka"],["2026-06-18","Božena"],["2026-06-18","Růžena"],["2026-06-18","Pepina"],["2026-06-18","Žofka"],["2026-06-19","Božena"],["2026-06-19","Růžena"],["2026-06-19","Pepina"],["2026-06-19","Žofka"],["2026-06-20","Pepina"],["2026-06-20","Žofka"],["2026-06-21","Božena"],["2026-06-21","Růžena"],["2026-06-21","Pepina"],["2026-06-21","Žofka"],["2026-06-22","Božena"],["2026-06-22","Růžena"],["2026-06-22","Žofka"],["2026-06-23","Božena"],["2026-06-23","Pepina"],["2026-06-23","Žofka"],["2026-06-24","Božena"],["2026-06-24","Růžena"],["2026-06-24","Pepina"],["2026-06-24","Žofka"],["2026-06-25","Růžena"],["2026-06-25","Pepina"],["2026-06-25","Žofka"],["2026-06-26","Pepina"],["2026-06-26","Žofka"],["2026-06-27","Božena"],["2026-06-27","Růžena"],["2026-06-27","Pepina"],["2026-06-27","Žofka"],["2026-06-28","Pepina"],["2026-06-28","Žofka"],["2026-06-29","Růžena"],["2026-06-29","Pepina"],["2026-06-29","Žofka"],["2026-06-30","Božena"],["2026-06-30","Růžena"],["2026-06-30","Pepina"],["2026-06-30","Žofka"],["2026-07-01","Božena"],["2026-07-01","Pepina"],["2026-07-01","Žofka"],["2026-07-02","Božena"],["2026-07-02","Růžena"],["2026-07-02","Pepina"],["2026-07-02","Žofka"],["2026-07-03","Božena"],["2026-07-03","Pepina"],["2026-07-03","Žofka"],["2026-07-04","Božena"],["2026-07-04","Růžena"],["2026-07-04","Pepina"],["2026-07-05","Božena"],["2026-07-05","Pepina"],["2026-07-05","Žofka"],["2026-07-06","Růžena"],["2026-07-06","Pepina"],["2026-07-06","Žofka"],["2026-07-07","Božena"],["2026-07-07","Pepina"],["2026-07-07","Žofka"],["2026-07-08","Růžena"],["2026-07-08","Pepina"],["2026-07-08","Žofka"],["2026-07-09","Božena"],["2026-07-09","Růžena"],["2026-07-09","Pepina"],["2026-07-09","Žofka"],["2026-07-10","Božena"],["2026-07-10","Žofka"],["2026-07-11","Růžena"],["2026-07-11","Pepina"],["2026-07-11","Žofka"],["2026-07-12","Božena"],["2026-07-12","Žofka"],["2026-07-13","Božena"],["2026-07-13","Pepina"],["2026-07-13","Žofka"],["2026-07-14","Růžena"],["2026-07-14","Pepina"],["2026-07-14","Žofka"],["2026-07-15","Pepina"],["2026-07-16","Božena"],["2026-07-16","Pepina"],["2026-07-17","Pepina"],["2026-07-18","Božena"],["2026-07-18","Růžena"],["2026-07-18","Pepina"],["2026-07-19","Božena"],["2026-07-19","Růžena"],["2026-07-19","Pepina"],["2026-07-20","Růžena"],["2026-07-20","Pepina"],["2026-07-21","Božena"],["2026-07-21","Růžena"],["2026-07-21","Pepina"],["2026-07-22","Božena"],["2026-07-22","Pepina"],["2026-07-22","Žofka"],["2026-07-23","Božena"],["2026-07-23","Růžena"],["2026-07-23","Pepina"],["2026-07-23","Žofka"],["2026-07-24","Růžena"],["2026-07-24","Pepina"],["2026-07-24","Žofka"],["2026-07-25","Pepina"],["2026-07-25","Žofka"],["2026-07-26","Božena"],["2026-07-26","Pepina"],["2026-07-26","Žofka"],["2026-07-27","Růžena"],["2026-07-27","Pepina"],["2026-07-27","Žofka"],["2026-07-28","Božena"],["2026-07-28","Pepina"],["2026-07-28","Žofka"],["2026-07-29","Růžena"],["2026-07-29","Pepina"],["2026-07-29","Žofka"],["2026-07-30","Božena"],["2026-07-30","Růžena"],["2026-07-31","Růžena"],["2026-07-31","Pepina"],["2026-08-01","Pepina"],["2026-08-01","Žofka"],["2026-08-02","Pepina"],["2026-08-02","Žofka"],["2026-08-03","Božena"],["2026-08-03","Růžena"],["2026-08-03","Pepina"],["2026-08-03","Žofka"],["2026-08-04","Růžena"],["2026-08-04","Pepina"],["2026-08-04","Žofka"],["2026-08-05","Božena"],["2026-08-05","Pepina"],["2026-08-05","Žofka"],["2026-08-06","Růžena"],["2026-08-06","Pepina"],["2026-08-06","Žofka"],["2026-08-07","Pepina"],["2026-08-07","Žofka"],["2026-08-08","Božena"],["2026-08-08","Pepina"],["2026-08-08","Žofka"],["2026-08-09","Růžena"],["2026-08-09","Pepina"],["2026-08-09","Žofka"],["2026-08-10","Božena"],["2026-08-10","Pepina"],["2026-08-10","Žofka"],["2026-08-11","Božena"],["2026-08-12","Božena"],["2026-08-12","Růžena"],["2026-08-12","Pepina"],["2026-08-12","Žofka"],["2026-08-13","Pepina"],["2026-08-13","Žofka"],["2026-08-14","Božena"],["2026-08-14","Růžena"],["2026-08-14","Pepina"],["2026-08-14","Žofka"],["2026-08-15","Žofka"],["2026-08-16","Božena"],["2026-08-16","Růžena"],["2026-08-16","Pepina"],["2026-08-16","Žofka"],["2026-08-17","Růžena"],["2026-08-17","Pepina"],["2026-08-17","Žofka"],["2026-08-18","Pepina"],["2026-08-18","Žofka"],["2026-08-19","Růžena"],["2026-08-19","Pepina"],["2026-08-19","Žofka"],["2026-08-20","Božena"],["2026-08-20","Růžena"],["2026-08-20","Pepina"],["2026-08-20","Žofka"],["2026-08-21","Růžena"],["2026-08-21","Pepina"],["2026-08-21","Žofka"],["2026-08-22","Božena"],["2026-08-22","Růžena"],["2026-08-22","Pepina"],["2026-08-22","Žofka"],["2026-08-23","Božena"],["2026-08-23","Růžena"],["2026-08-24","Pepina"],["2026-08-24","Žofka"],["2026-08-25","Pepina"],["2026-08-25","Žofka"],["2026-08-26","Božena"],["2026-08-26","Pepina"],["2026-08-26","Žofka"],["2026-08-27","Božena"],["2026-08-27","Růžena"],["2026-08-27","Pepina"],["2026-08-27","Žofka"],["2026-08-28","Božena"],["2026-08-28","Pepina"],["2026-08-28","Žofka"],["2026-08-29","Božena"],["2026-08-29","Růžena"],["2026-08-29","Pepina"],["2026-08-30","Pepina"],["2026-08-31","Růžena"],["2026-08-31","Pepina"]],"purchases":[["2025-04-13","vybaveni","kurník",4243.0],["2025-04-13","vybaveni","výběh pro hlodavce + podkladky",1835.0],["2025-04-19","krmivo","Krmivo",160.0],["2025-04-19","slepice","Slepice",400.0],["2025-05-22","vybaveni","Vybavení",244.0],["2025-06-14","vybaveni","Vybavení",107.0],["2025-09-25","krmivo","Krmivo",398.0],["2025-09-25","vybaveni","Vybavení",150.0],["2025-11-29","krmivo","Krmivo",318.0],["2026-02-07","vybaveni","rozšíření kurníku",2431.0],["2026-02-13","vybaveni","napáječka",170.0],["2026-02-14","slepice","křemelina",520.0],["2026-02-14","vybaveni","křemelina",338.0],["2026-02-22","vybaveni","výběh 3x2 m",2526.0],["2026-02-22","vybaveni","pletivo na tunel Temu",338.0],["2026-03-29","vybaveni","automatická dvířka",1485.0],["2026-05-15","vybaveni","Velká napajecka",187.0],["2026-06-14","krmivo","bráněnky Zoohit",140.0],["2026-06-21","vybaveni","mlha",349.0],["2026-08-14","krmivo","bráněnky Hornbach",219.0]],"sales":[["2025-08-06",10,4.0,""],["2025-08-18",15,4.0,""],["2025-08-26",10,5.0,""],["2025-09-24",10,5.0,""],["2025-11-20",10,5.0,""],["2026-01-21",10,6.0,""],["2026-02-18",10,6.0,""],["2026-02-28",18,6.0,"vlastní spotřeba"],["2026-03-30",10,6.0,""],["2026-03-31",49,5.96,"vlastní spotřeba"],["2026-04-01",10,5.0,""],["2026-04-10",10,6.0,""],["2026-04-14",10,6.0,""],["2026-04-27",20,6.0,""],["2026-04-30",43,6.0,"vlastní spotřeba"],["2026-05-05",10,6.0,""],["2026-05-11",10,6.0,""],["2026-05-12",10,6.0,""],["2026-05-15",10,6.0,""],["2026-05-25",20,6.0,""],["2026-05-29",10,6.0,""],["2026-05-31",10,6.0,""],["2026-05-31",11,6.0,"vlastní spotřeba"],["2026-06-05",10,6.0,""],["2026-06-09",10,6.0,""],["2026-06-12",10,6.0,""],["2026-06-15",10,6.0,""],["2026-06-19",10,6.0,""],["2026-06-23",10,6.0,""],["2026-06-30",38,6.0,"vlastní spotřeba"],["2026-07-01",10,6.0,""],["2026-07-13",10,6.0,""],["2026-07-14",10,6.0,""],["2026-07-20",10,6.0,""],["2026-07-24",10,6.0,""],["2026-07-31",35,6.0,"vlastní spotřeba"],["2026-08-03",20,6.0,""],["2026-08-11",10,6.0,""],["2026-08-17",10,6.0,""],["2026-08-21",10,6.0,""],["2026-08-27",10,6.0,""],["2026-08-28",10,6.0,""],["2026-08-31",15,6.0,"vlastní spotřeba"],["2026-09-01",10,6.0,""]]};
+
+  async function loadAll() {
+    try { const r = await window.storage.get('egg-logs'); eggLogs = r ? JSON.parse(r.value) : []; } catch (e) { eggLogs = []; }
+    try { const r = await window.storage.get('purchases'); purchases = r ? JSON.parse(r.value) : []; } catch (e) { purchases = []; }
+    try { const r = await window.storage.get('sales'); sales = r ? JSON.parse(r.value) : []; } catch (e) { sales = []; }
+    try { const r = await window.storage.get('own-consumption'); ownConsumption = r ? JSON.parse(r.value) : []; } catch (e) { ownConsumption = []; }
+    try {
+      const r = await window.storage.get('hens');
+      hens = r ? JSON.parse(r.value) : null;
+    } catch (e) { hens = null; }
+    if (!hens) {
+      hens = ['Božena', 'Růžena', 'Žofka', 'Pepina'].map((name, i) => ({ id: 'default-' + i, name, breed: '', acquiredDate: '' }));
+      await save('hens', hens);
+    }
+    await recomputeOwnConsumption();
+    render();
+    await checkImportBanner();
+  }
+  async function save(key, data) {
+    try { await window.storage.set(key, JSON.stringify(data)); } catch (e) { console.error('Uložení se nezdařilo', e); }
+  }
+
+  // ---------- IMPORT Z EXCELU ----------
+  async function checkImportBanner() {
+    let already = null;
+    try { const r = await window.storage.get('xlsx-import-v1'); already = r ? r.value : null; } catch (e) { already = null; }
+    if (already) return;
+    const banner = root.querySelector('#import-banner');
+    root.querySelector('#import-banner-text').textContent =
+      `Našla jsem data z Naše_holky.xlsx: ${IMPORT_DATA.eggLogs.length} záznamů snášky, ${IMPORT_DATA.purchases.length} nákupů a ${IMPORT_DATA.sales.length} prodejů. Chceš je přidat do deníku?`;
+    banner.style.display = 'block';
+  }
+
+  root.querySelector('#import-banner-btn').addEventListener('click', async () => {
+    const btn = root.querySelector('#import-banner-btn');
+    btn.disabled = true;
+    let addedEggs = 0, addedPurchases = 0, addedSales = 0, skippedConsumption = 0;
+
+    IMPORT_DATA.eggLogs.forEach(([date, hen], i) => {
+      if (!eggLogs.some(l => l.hen === hen && l.date === date)) {
+        eggLogs.push({ id: 'xlsx-egg-' + i, date, hen });
+        addedEggs++;
+      }
+    });
+    IMPORT_DATA.purchases.forEach(([date, type, item, price], i) => {
+      const dup = purchases.some(p => p.date === date && p.item === item && p.price === price);
+      if (!dup) {
+        purchases.push({ id: 'xlsx-purchase-' + i, date, type, item, price });
+        addedPurchases++;
+      }
+    });
+    IMPORT_DATA.sales.forEach(([date, count, pricePerEgg, buyer], i) => {
+      if (buyer === 'vlastní spotřeba') { skippedConsumption++; return; }
+      const dup = sales.some(s => s.date === date && s.count === count && s.pricePerEgg === pricePerEgg && s.buyer === buyer);
+      if (!dup) {
+        sales.push({ id: 'xlsx-sale-' + i, date, count, pricePerEgg, buyer });
+        addedSales++;
+      }
+    });
+
+    await save('egg-logs', eggLogs);
+    await save('purchases', purchases);
+    await save('sales', sales);
+    await recomputeOwnConsumption();
+    await save('xlsx-import-v1', 'done');
+
+    root.querySelector('#import-banner-text').textContent =
+      `Hotovo: přidáno ${addedEggs} záznamů snášky, ${addedPurchases} nákupů a ${addedSales} prodejů. ${skippedConsumption} starých záznamů "vlastní spotřeba" bylo přeskočeno – od teď se počítá automaticky po měsících.`;
+    root.querySelector('#import-banner-btn').style.display = 'none';
+    root.querySelector('#import-banner-dismiss').textContent = 'Zavřít';
+
+    render();
+  });
+
+  root.querySelector('#import-banner-dismiss').addEventListener('click', async () => {
+    await save('xlsx-import-v1', 'dismissed');
+    root.querySelector('#import-banner').style.display = 'none';
+  });
+
+  // ---------- SLEPICE (SPRÁVA) ----------
+  function updateHeadSubtitle() {
+    root.querySelector('#head-hens').textContent = henNames().join(' · ') || 'Zatím žádná slepice';
+  }
+
+  root.querySelector('#hen-add').addEventListener('click', async () => {
+    const name = root.querySelector('#hen-name').value.trim();
+    const breed = root.querySelector('#hen-breed').value.trim();
+    const acquiredDate = root.querySelector('#hen-date').value;
+    const err = root.querySelector('#hen-err');
+    if (!name) { err.style.display = 'block'; return; }
+    if (hens.some(h => h.name === name)) { err.textContent = 'Slepice s tímto jménem už existuje.'; err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    hens.push({ id: 'hen-' + Date.now(), name, breed, acquiredDate });
+    await save('hens', hens);
+    root.querySelector('#hen-name').value = '';
+    root.querySelector('#hen-breed').value = '';
+    root.querySelector('#hen-date').value = '';
+    renderAll();
+  });
+
+  function renderHenList() {
+    const wrap = root.querySelector('#hen-list');
+    wrap.innerHTML = '';
+    if (!hens.length) { wrap.innerHTML = '<div class="empty">Zatím žádné slepice.</div>'; return; }
+    hens.forEach(h => {
+      const card = document.createElement('div');
+      card.className = 'hen-card';
+      const metaParts = [];
+      if (h.breed) metaParts.push(h.breed);
+      if (h.acquiredDate) metaParts.push('od ' + fmtDate(h.acquiredDate));
+      card.innerHTML = `
+        <div class="top">
+          <div><div class="name">${h.name}</div><div class="meta">${metaParts.join(' · ') || 'bez dalších údajů'}</div></div>
+          <div class="actions">
+            <button class="edit-btn">Upravit</button>
+            <button class="del-btn danger">Smazat</button>
+          </div>
+        </div>`;
+      const editBtn = card.querySelector('.edit-btn');
+      const delBtn = card.querySelector('.del-btn');
+
+      editBtn.addEventListener('click', () => openHenEditForm(card, h));
+
+      let confirming = false;
+      delBtn.addEventListener('click', async () => {
+        if (!confirming) {
+          confirming = true;
+          delBtn.textContent = 'Opravdu?';
+          delBtn.classList.add('confirming');
+          setTimeout(() => { confirming = false; delBtn.textContent = 'Smazat'; delBtn.classList.remove('confirming'); }, 3000);
+          return;
+        }
+        hens = hens.filter(x => x.id !== h.id);
+        await save('hens', hens);
+        renderAll();
+      });
+
+      wrap.appendChild(card);
+    });
+  }
+
+  function openHenEditForm(card, h) {
+    card.innerHTML = `
+      <div class="edit-form">
+        <label class="field">Jméno</label>
+        <input type="text" class="e-name" value="${h.name}">
+        <div class="row2">
+          <div><label class="field">Plemeno</label><input type="text" class="e-breed" value="${h.breed || ''}"></div>
+          <div><label class="field">Datum pořízení</label><input type="date" class="e-date" value="${h.acquiredDate || ''}"></div>
+        </div>
+        <div class="err e-err">Zadej jméno slepice.</div>
+        <div class="edit-actions">
+          <button class="save-btn">Uložit</button>
+          <button class="cancel">Zrušit</button>
+        </div>
+      </div>`;
+    card.querySelector('.cancel').addEventListener('click', () => renderHenList());
+    card.querySelector('.save-btn').addEventListener('click', async () => {
+      const newName = card.querySelector('.e-name').value.trim();
+      const newBreed = card.querySelector('.e-breed').value.trim();
+      const newDate = card.querySelector('.e-date').value;
+      const err = card.querySelector('.e-err');
+      if (!newName) { err.style.display = 'block'; return; }
+      if (newName !== h.name && hens.some(x => x.name === newName)) {
+        err.textContent = 'Slepice s tímto jménem už existuje.'; err.style.display = 'block'; return;
+      }
+      err.style.display = 'none';
+      const oldName = h.name;
+      h.name = newName; h.breed = newBreed; h.acquiredDate = newDate;
+      if (oldName !== newName) {
+        eggLogs.forEach(l => { if (l.hen === oldName) l.hen = newName; });
+        await save('egg-logs', eggLogs);
+      }
+      await save('hens', hens);
+      renderAll();
+    });
+  }
+
+  function renderAll() {
+    render();
+  }
+
+  // ---------- SNÁŠKA ----------
+  const snaskaDate = root.querySelector('#snaska-date');
+  snaskaDate.value = today();
+  snaskaDate.addEventListener('change', renderHensRow);
+
+  function henLaidOn(hen, date) { return eggLogs.some(l => l.hen === hen && l.date === date); }
+
+  function renderHensRow() {
+    const date = snaskaDate.value;
+    const wrap = root.querySelector('#hens-row');
+    wrap.innerHTML = '';
+    henNames().forEach(hen => {
+      const laid = henLaidOn(hen, date);
+      const btn = document.createElement('button');
+      btn.className = 'hen-btn' + (laid ? ' laid' : '');
+      btn.innerHTML = `<div class="name">${laid ? '<span class="dot"></span>' : ''}${hen}</div><div class="sub">${laid ? 'snesla vejce' : 'zatím nic'}</div>`;
+      btn.addEventListener('click', async () => {
+        if (laid) {
+          eggLogs = eggLogs.filter(l => !(l.hen === hen && l.date === date));
+        } else {
+          eggLogs.push({ id: Date.now() + '-' + hen, date, hen });
+        }
+        await save('egg-logs', eggLogs);
+        await recomputeOwnConsumption();
+        renderHensRow();
+        renderSnaskaList();
+        renderSpotrebaList();
+        renderPrehled();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function renderSnaskaList() {
+    const list = root.querySelector('#snaska-list');
+    const byDate = {};
+    eggLogs.forEach(l => { byDate[l.date] = byDate[l.date] || []; byDate[l.date].push(l.hen); });
+    const dates = Object.keys(byDate).sort().reverse().slice(0, 14);
+    list.innerHTML = '';
+    if (!dates.length) { list.innerHTML = '<div class="empty">Zatím žádné záznamy.</div>'; return; }
+    dates.forEach(d => {
+      const row = document.createElement('div');
+      row.className = 'list-item';
+      row.innerHTML = `<div><div class="main">${fmtDate(d)}</div><div class="meta">${byDate[d].join(', ')}</div></div><div class="amt">${byDate[d].length} vejce</div>`;
+      list.appendChild(row);
+    });
+  }
+
+  // ---------- NÁKUPY ----------
+  root.querySelectorAll('#panel-nakupy > .subtabs .subtab').forEach(st => {
+    st.addEventListener('click', () => {
+      root.querySelectorAll('#panel-nakupy > .subtabs .subtab').forEach(x => x.classList.remove('active'));
+      st.classList.add('active');
+      currentPtype = st.dataset.ptype;
+    });
+  });
+
+  let currentNakupFilter = 'vse';
+  root.querySelectorAll('#nakup-filter .subtab').forEach(st => {
+    st.addEventListener('click', () => {
+      root.querySelectorAll('#nakup-filter .subtab').forEach(x => x.classList.remove('active'));
+      st.classList.add('active');
+      currentNakupFilter = st.dataset.filter;
+      renderNakupList();
+    });
+  });
+
+  root.querySelector('#nakup-date').value = today();
+
+  root.querySelector('#nakup-add').addEventListener('click', async () => {
+    const item = root.querySelector('#nakup-item').value.trim();
+    const cena = parseFloat(root.querySelector('#nakup-cena').value);
+    const date = root.querySelector('#nakup-date').value || today();
+    const err = root.querySelector('#nakup-err');
+    if (!item || isNaN(cena) || cena < 0) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    purchases.push({ id: Date.now().toString(), date, type: currentPtype, item, price: cena });
+    await save('purchases', purchases);
+    root.querySelector('#nakup-item').value = '';
+    root.querySelector('#nakup-cena').value = '';
+    renderNakupList();
+    renderPrehled();
+  });
+
+  function renderNakupList() {
+    const list = root.querySelector('#nakup-list');
+    const subtotal = root.querySelector('#nakup-subtotal');
+
+    const filtered = currentNakupFilter === 'vse'
+      ? [...purchases]
+      : purchases.filter(p => p.type === currentNakupFilter);
+
+    const sorted = filtered.sort((a, b) => b.date.localeCompare(a.date));
+    const total = sorted.reduce((sum, p) => sum + Number(p.price || 0), 0);
+
+    list.innerHTML = '';
+    const filterLabels = {
+      vse: 'všechny nákupy',
+      krmivo: 'krmivo',
+      vybaveni: 'vybavení',
+      slepice: 'slepice'
+    };
+    subtotal.textContent = sorted.length
+      ? `Celkem za ${filterLabels[currentNakupFilter]}: ${fmtCzk(total)}`
+      : '';
+
+    if (!sorted.length) {
+      list.innerHTML = '<div class="empty">Pro zvolený typ zatím žádné nákupy.</div>';
+      return;
+    }
+
+    sorted.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'list-item';
+      const typeLabel = p.type === 'krmivo' ? 'krmivo' : (p.type === 'slepice' ? 'slepice' : 'vybavení');
+      row.innerHTML = `<div><div class="main">${p.item}</div><div class="meta">${fmtDate(p.date)} · ${typeLabel}</div></div><div class="amt">${fmtCzk(p.price)}<button class="del" title="Smazat" data-id="${p.id}">×</button></div>`;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll('.del').forEach(b => b.addEventListener('click', async (e) => {
+      purchases = purchases.filter(p => p.id !== e.target.dataset.id);
+      await save('purchases', purchases);
+      renderNakupList();
+      renderPrehled();
+    }));
+  }
+
+  // ---------- PRODEJ ----------
+  root.querySelector('#prodej-date').value = today();
+  root.querySelector('#prodej-add').addEventListener('click', async () => {
+    const count = parseInt(root.querySelector('#prodej-pocet').value, 10);
+    const price = parseFloat(root.querySelector('#prodej-cena').value);
+    const date = root.querySelector('#prodej-date').value || today();
+    const buyer = root.querySelector('#prodej-komu').value.trim();
+    const err = root.querySelector('#prodej-err');
+    if (!count || count < 1 || isNaN(price) || price < 0) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    sales.push({ id: Date.now().toString(), date, count, pricePerEgg: price, buyer });
+    await save('sales', sales);
+    await recomputeOwnConsumption();
+    root.querySelector('#prodej-pocet').value = '';
+    root.querySelector('#prodej-cena').value = '';
+    root.querySelector('#prodej-komu').value = '';
+    renderProdejList();
+    renderSpotrebaList();
+    renderPrehled();
+  });
+
+  function renderProdejList() {
+    const list = root.querySelector('#prodej-list');
+    const sorted = [...sales].sort((a, b) => b.date.localeCompare(a.date));
+    list.innerHTML = '';
+    if (!sorted.length) { list.innerHTML = '<div class="empty">Zatím žádné prodeje.</div>'; return; }
+    sorted.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'list-item';
+      row.innerHTML = `<div><div class="main">${s.count} vajec${s.buyer ? ' · ' + s.buyer : ''}</div><div class="meta">${fmtDate(s.date)} · ${s.pricePerEgg} Kč/ks</div></div><div class="amt">${fmtCzk(s.count * s.pricePerEgg)}<button class="del" title="Smazat" data-id="${s.id}">×</button></div>`;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('.del').forEach(b => b.addEventListener('click', async (e) => {
+      sales = sales.filter(s => s.id !== e.target.dataset.id);
+      await save('sales', sales);
+      await recomputeOwnConsumption();
+      renderProdejList(); renderSpotrebaList(); renderPrehled();
+    }));
+  }
+
+  // ---------- VLASTNÍ SPOTŘEBA ----------
+  const MONTH_NAMES = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
+  function monthLabel(m) {
+    const [y, mo] = m.split('-');
+    return `${MONTH_NAMES[parseInt(mo, 10) - 1]} ${y}`;
+  }
+
+  async function recomputeOwnConsumption() {
+    const currentMonth = today().slice(0, 7);
+    const months = new Set();
+    eggLogs.forEach(l => { const m = l.date.slice(0, 7); if (m < currentMonth) months.add(m); });
+    sales.forEach(s => { const m = s.date.slice(0, 7); if (m < currentMonth) months.add(m); });
+    const sortedMonths = [...months].sort();
+    let lastAvgPrice = 0;
+    const fresh = sortedMonths.map(m => {
+      const laid = eggLogs.filter(l => l.date.slice(0, 7) === m).length;
+      const monthSales = sales.filter(s => s.date.slice(0, 7) === m);
+      const sold = monthSales.reduce((sum, s) => sum + s.count, 0);
+      const revenue = monthSales.reduce((sum, s) => sum + s.count * s.pricePerEgg, 0);
+      const avgPrice = sold > 0 ? revenue / sold : lastAvgPrice;
+      if (sold > 0) lastAvgPrice = avgPrice;
+      const amount = Math.max(0, laid - sold);
+      return { id: 'auto-' + m, month: m, amount, laid, sold, avgPrice, value: Math.round(amount * avgPrice * 100) / 100 };
+    });
+    if (JSON.stringify(fresh) !== JSON.stringify(ownConsumption)) {
+      ownConsumption = fresh;
+      await save('own-consumption', ownConsumption);
+    }
+  }
+
+  function renderSpotrebaList() {
+    const list = root.querySelector('#spotreba-list');
+    const sorted = [...ownConsumption].sort((a, b) => b.month.localeCompare(a.month));
+    list.innerHTML = '';
+    if (!sorted.length) { list.innerHTML = '<div class="empty">Zatím žádný uzavřený měsíc s daty.</div>'; return; }
+    sorted.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'list-item';
+      row.innerHTML = `<div><div class="main">${c.amount} ${c.amount === 1 ? 'vejce' : 'vajec'}</div><div class="meta">${monthLabel(c.month)} · snesla ${c.laid}, prodáno ${c.sold}${c.avgPrice ? ' · ø ' + c.avgPrice.toFixed(2) + ' Kč/ks' : ''}</div></div><div class="amt">${fmtCzk(c.value)}</div>`;
+      list.appendChild(row);
+    });
+  }
+
+  // ---------- PŘEHLED ----------
+  function renderPrehled() {
+    const totalEggs = eggLogs.length;
+    const totalCosts = purchases.reduce((s, p) => s + p.price, 0);
+    const totalRevenue = sales.reduce((s, x) => s + x.count * x.pricePerEgg, 0);
+    const totalOwnConsumption = ownConsumption.reduce((s, c) => s + c.amount, 0);
+    const totalOwnConsumptionValue = ownConsumption.reduce((s, c) => s + c.value, 0);
+    const profit = totalRevenue + totalOwnConsumptionValue - totalCosts;
+    const stats = root.querySelector('#prehled-stats');
+    stats.innerHTML = `
+      <div class="stat-card"><div class="label">Vajec celkem</div><div class="value">${totalEggs}</div></div>
+      <div class="stat-card"><div class="label">Náklady celkem</div><div class="value">${fmtCzk(totalCosts)}</div></div>
+      <div class="stat-card"><div class="label">Tržby z prodeje</div><div class="value">${fmtCzk(totalRevenue)}</div></div>
+      <div class="stat-card"><div class="label">Vlastní spotřeba</div><div class="value">${totalOwnConsumption} vajec</div></div>
+      <div class="stat-card"><div class="label">Hodnota spotřeby</div><div class="value">${fmtCzk(totalOwnConsumptionValue)}</div></div>
+      <div class="stat-card ${profit >= 0 ? 'profit-pos' : 'profit-neg'}"><div class="label">Bilance</div><div class="value">${fmtCzk(profit)}</div></div>
+    `;
+    const counts = {};
+    henNames().forEach(h => counts[h] = 0);
+    eggLogs.forEach(l => counts[l.hen] = (counts[l.hen] || 0) + 1);
+    const max = Math.max(1, ...Object.values(counts));
+    const wrap = root.querySelector('#prehled-hens');
+    wrap.innerHTML = '';
+    henNames().forEach(h => {
+      const row = document.createElement('div');
+      row.className = 'hen-stat-row';
+      row.innerHTML = `<div class="n">${h}</div><div class="bar-wrap"><div class="bar" style="width:${(counts[h] / max) * 100}%"></div></div><div class="cnt">${counts[h]} vajec</div>`;
+      wrap.appendChild(row);
+    });
+    renderMonths();
+  }
+
+  function renderMonths() {
+    const byMonth = {};
+    eggLogs.forEach(l => {
+      const key = l.date.slice(0, 7);
+      if (!byMonth[key]) byMonth[key] = { total: 0, perHen: {} };
+      byMonth[key].total++;
+      byMonth[key].perHen[l.hen] = (byMonth[key].perHen[l.hen] || 0) + 1;
+    });
+    const keys = Object.keys(byMonth).sort().reverse();
+    const wrap = root.querySelector('#prehled-months');
+    wrap.innerHTML = '';
+    if (!keys.length) { wrap.innerHTML = '<div class="empty">Zatím žádné záznamy.</div>'; return; }
+    const max = Math.max(1, ...keys.map(k => byMonth[k].total));
+    keys.forEach(k => {
+      const dt = new Date(k + '-01T00:00:00');
+      const label = dt.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+      const data = byMonth[k];
+      const breakdown = henNames().map(h => `${h} ${data.perHen[h] || 0}`).join(' · ');
+      const row = document.createElement('div');
+      row.className = 'month-row';
+      row.innerHTML = `<div class="top"><div class="m">${label}</div><div class="total">${data.total} vejce</div></div><div class="bar-wrap"><div class="bar" style="width:${(data.total / max) * 100}%"></div></div><div class="breakdown">${breakdown}</div>`;
+      wrap.appendChild(row);
+    });
+  }
+
+  // ---------- TABS ----------
+  root.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      root.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      root.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      root.querySelector('#panel-' + t.dataset.tab).classList.add('active');
+    });
+  });
+
+  function render() {
+    updateHeadSubtitle();
+    renderHensRow();
+    renderSnaskaList();
+    renderNakupList();
+    renderProdejList();
+    renderSpotrebaList();
+    renderPrehled();
+    renderHenList();
+  }
+
+  loadAll();
+})();
+</script>
+</body>
+</html>
